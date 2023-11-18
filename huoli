@@ -1,0 +1,43 @@
+await newdown(1)
+async function newdown(page){
+	var last = page + 3
+	var list = await getlist(page)
+	log(list)
+	var table = new UITable()
+	table.showSeparators = 1
+	for(i in list){
+		var title = await cts(list[i].title)
+		var time = list[i].length
+		var pic = list[i].pic
+		var row = new UITableRow()
+		row.height = 150
+		row.dismissOnSelect = false
+		row.addImageAtURL(pic)
+		row.onSelect = (i) => {
+			Safari.openInApp("http://81.70.181.220/stream.php?video_id=" + list[i].video_id)
+		}
+		row.addText(title + time)
+		table.addRow(row)
+	}
+	var lastpage = new UITableRow()
+	lastpage.addText("下一页")
+	lastpage.onSelect=()=>newdown(last)
+	table.addRow(lastpage)
+	table.present(true)
+}
+async function getlist(page){
+  var req = new Request("http://81.70.181.238/%2Fyou_new_down/getList")
+  req.method='post'
+  req.body = "page="+page+"&limit=30&sign=D8978F9D9F6C0C2F1A538E15DB45756F"
+  return (await req.loadJSON()).data.list
+}
+
+async function cts(char){
+	var str = ""
+	var list = char.split(/;/)
+	for(var i in list){
+		var s = String.fromCharCode(list[i].replace(/&#/, ""))
+		str += s
+	}
+	return str
+}
