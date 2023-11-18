@@ -1,0 +1,154 @@
+// 文档管理
+const filename =  "相框.jpg";
+const files = FileManager.local();
+const path = files.joinPath(files.documentsDirectory(), filename);
+// 组件尺寸
+const xw = 168.51,xh = 168.51
+const zw = 359.51,zh = 168.51
+const dw = 359.51,dh = 378.51
+// 设置背景
+const bgchange = 0
+if(config.runsInApp&bgchange){
+  files.writeImage(path,await Photos.fromLibrary())
+}
+// 组件基础设置
+const widget = new ListWidget()
+let mainStack = setStack(widget, new Size(zw, zh), 1)
+mainStack.setPadding(0,0,0,0)
+var img = files.readImage(path)
+mainStack.backgroundImage = img
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+
+
+
+
+
+
+
+
+widget.presentMedium()
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Script.setWidget(widget)
+
+
+await dosome(getCaiyunData, 6)
+async function getCaiyunData(){
+	var weatherReq = "https://api.caiyunapp.com/v2.5/UR8ASaplvIwavDfR/187.89869109148445,35.98805113251095/weather.json?alert=true&dailysteps=7&lang=zh_CN"
+      var dataToday = await new Request(weatherReq).loadJSON()	
+	try{
+		var alert = dataToday.result.alert.content
+		var id = alert[0].alertId
+		if(Keychain.contains("alertId")){
+			if(id!==Keychain.get("alertId")){
+				Keychain.set("alertId", id)
+				Push(alert[0].title, alert[0].description)
+			}
+		}else{
+			Keychain.set("alertId", id)
+			Push(alert[0].title, alert[0].description)
+		}
+	}catch(e){}
+}
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+function Push(title,body){
+	var a = new Notification()
+	try{
+		a.title = title
+		a.body = body
+	}catch(e){}
+	a.schedule()
+}
+
+
+// 创建区块
+function setStack(Fstack,size,Vbox){
+	let Sstack = Fstack.addStack()
+	Sstack.size = size
+	Sstack.centerAlignContent()
+	if(Vbox){Sstack.layoutVertically()}		
+	return Sstack
+}
+
+// 绘制文字
+function drarText(text,width,height,x,y,aline,FontColor,FontSize){
+	let draw = new DrawContext()
+	draw.respectScreenScale = true
+	draw.size = new Size(width, height)
+	draw.opaque = false
+	draw.setTextColor(FontColor)
+	draw.setFont(Font.blackMonospacedSystemFont(FontSize))
+	switch(aline){
+		case "left" : draw.setTextAlignedLeft();break;
+		case "cent" : draw.setTextAlignedCenter();break;
+		case "right" : draw.setTextAlignedRight();break;
+	}
+	draw.drawTextInRect(text, new Rect(x, y, width, height))	
+	return draw.getImage()
+}
+
+// ------------------------
+// 缓存
+/** 获取缓存数据 */
+function cacheGet(key, allowSeconds) {
+  let cache = ""
+  if (!Keychain.contains(key)) return cache;
+  //不存在返回空  
+  cache = JSON.parse(Keychain.get(key))
+  if (allowSeconds && allowSeconds > 0) {	
+	let Dtime = ((new Date()).getTime() - cache.time)/1000//缓存时间差  秒
+log(Dtime)	
+	if (Dtime > allowSeconds){
+      cache = ""
+      log("缓存过期")
+      return cache
+    }
+  }
+    
+  return cache.value
+}
+/** 设置缓存数据*/
+function cacheSet(key, value) {
+  if (value == null || value == undefined) return;
+  time = (new Date()).getTime()
+  let cache = {
+    "value":value,
+    "time":time
+  }
+  log("写入缓存")
+  log(cache)
+  Keychain.set(key, JSON.stringify(cache))
+}
+/** 删除缓存数据 */
+function cacheDel(key) {
+    Keychain.remove(key);
+}
+// ----------------------
+// 定次运行
+async function dosome(fun,time){
+	var key = fun.name
+	var date = new Date()
+	var day = date.getDate()
+	var Minute = date.getHours()*60 + date.getMinutes()
+	var run = getkey(key,day)
+	if(run<time&Minute>run*24*60/time){
+		setkey(key, day)
+		await fun()
+	}
+}
+function getkey(key,day){
+	try{
+		var v = JSON.parse(Keychain.get(key))
+		var time = v.time
+		if(day!=v.day){return 0}
+		return time
+	}catch(e){return 0}
+}
+function setkey(key,day){
+	var time = getkey(key,day)
+	var v = {"day":day,"time":time+1}
+	Keychain.set(key, JSON.stringify(v))
+}
