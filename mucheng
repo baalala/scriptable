@@ -1,0 +1,15 @@
+var rseapi = "https://tcity.cc/api/v1/passport/auth/register"
+var getsub = "https://tcity.cc/api/v1/user/getSubscribe"
+const a = Math.floor(Math.random() * 999999999)+1000000
+var r1 = new Request(rseapi)
+r1.method="POST"
+r1.body=`email=${a}%4036.com&password=gubpi7-sathYf-rohniv&invite_code=&email_code=`
+var p1 =await r1.loadJSON()
+var Authorization=p1.data.auth_data
+var p= new Proxy(p1, {})
+var r2=new Request(getsub)
+r2.headers={"Authorization":Authorization}
+var p2=await r2.loadJSON()
+var sub=p2.data.subscribe_url
+Safari.open(`shadowrocket://add/${sub}`)
+
