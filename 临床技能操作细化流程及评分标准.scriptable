@@ -1,0 +1,41 @@
+await main()
+async function main(){
+	var url = "https://z.ipmph.com/pmphzzfw/H5Book/getBookDirectoryTypeTotalList?isbn=2021000620"	
+	var list = (await get(url)).data.tree
+	select(list)
+}
+function select(item){
+	if(item[0].title){
+		var t = new UITable()
+		for(a in item){
+			var r = new UITableRow()
+			r.addText(item[a].title)
+			r.dismissOnSelect = 0
+			r.onSelect=(a)=>{
+				video(item[a].id)
+			}
+			t.addRow(r)
+		}
+		t.present(0)
+	}else{
+		var t = new UITable()
+		for(b in item){
+			var r = new UITableRow()
+			r.addText(item[b].directoryName)
+			r.dismissOnSelect = 0
+			r.onSelect=(b)=>{select(item[b].children)}
+			t.addRow(r)
+		}
+		t.present(0)
+	}
+}
+async function video(id){
+	const Detial = "https://z.ipmph.com/pmphzzfw/H5Book/getBookResourceDetail?eisbn=2021000620_V1.3&resourceType=video&resourceId="
+	var req = await get(Detial + id)
+	var url = req.data.resourceUrlList.videoPath
+	Safari.openInApp(url,1)
+}
+async function get(url){
+	var req = new Request(url)
+	return await req.loadJSON()
+}
