@@ -11,7 +11,7 @@ const bgchange = 0
 if(config.runsInApp&bgchange){
   files.writeImage(path,await Photos.fromLibrary())
 }
-// 组件基础设置
+// 组件基础设置测试
 const widget = new ListWidget()
 let mainStack = setStack(widget, new Size(zw, zh), 1)
 mainStack.setPadding(0,0,0,0)
